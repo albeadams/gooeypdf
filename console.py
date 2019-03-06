@@ -1,6 +1,7 @@
 from gooey import Gooey, GooeyParser
 import sys
 import oracle as orca
+import pandas as pd
 
 @Gooey(default_size=(610,530), program_name="MFG Report")
 def createGooey():
@@ -9,22 +10,31 @@ def createGooey():
 	g_parser.add_argument("MFG", help="MFG to analyze. Entire name not required, but needs correct spelling.")
 	args = g_parser.parse_args()
 
-def oracle_connect():
-	results = orca.query(sys.argv[2:])
+def oracle_connect(submit):
+	results = orca.query(submit)
 	for code in results:
 		print(code)
 
 def findName(inputVal):
-	#here going to take whatever input and lookup in a file for correct name
-	return # need string
+	input = inputVal[0].upper()
+	count = 0
+	with open("mfg_names.txt", "r") as fp:
+		for line in iter(fp.readline, ''):
+			if input in line.rstrip():
+				submit = line.rstrip()
+				count += 1
 
-	#### need to pass in sys.argv[2:] to findName, make it upper, then pass result to oracle_connect,
-	### which calls orca.query(val), which is already uppercase at this point, so
-	### remove the logic in oracle.py that uses the array argv value
+	if count > 1:
+		print('More than one MFG found, please be more specific')
+		return ""
+	else:
+		return submit
+
 def main():
 	createGooey()
-	#result = findName()
-	oracle_connect()
+	result = findName(sys.argv[2:])
+	if result != "":
+		oracle_connect(result)
 
 if __name__ == '__main__':
 	main()

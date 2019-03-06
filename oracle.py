@@ -9,8 +9,7 @@ def query(mfg):
 
 	cursor = connection.cursor()
 
-	submfg = mfg[0].upper()
 	cursor.execute(df.query1,
-	 				mfg_name = submfg)
+	 		mfg_name = mfg)
 
 	return cursor
