@@ -1,7 +1,9 @@
 from gooey import Gooey, GooeyParser
 import sys
-import oracle as orca
 import pandas as pd
+import oracle
+import graph
+
 
 @Gooey(default_size=(610,530), program_name="MFG Report")
 def createGooey():
@@ -10,10 +12,18 @@ def createGooey():
 	g_parser.add_argument("MFG", help="MFG to analyze. Entire name not required, but needs correct spelling.")
 	args = g_parser.parse_args()
 
-def oracle_connect(submit):
-	results = orca.query(submit)
-	for code in results:
-		print(code)
+def oracle_query(name):
+	try:
+		cursor = oracle.query(name)
+		cols = [ x[0] for x in cursor.description ]
+		rows = cursor.fetchall()
+		return pd.DataFrame(rows, columns=cols)
+	except:
+		print("Failed to grab data")
+	finally:
+		if cursor is not None:
+			cursor.close()
+
 
 def findName(inputVal):
 	input = inputVal[0].upper()
@@ -32,9 +42,10 @@ def findName(inputVal):
 
 def main():
 	createGooey()
-	result = findName(sys.argv[2:])
-	if result != "":
-		oracle_connect(result)
+	name = findName(sys.argv[2:])
+	if name != "":
+		df = oracle_query(name)
+		graph.frame(df, name)
 
 if __name__ == '__main__':
 	main()
