@@ -12,9 +12,9 @@ def createGooey():
 	g_parser.add_argument("MFG", help="MFG to analyze. Entire name not required, but needs correct spelling.")
 	args = g_parser.parse_args()
 
-def oracle_query(name):
+def oracle_query(name, query):
 	try:
-		cursor = oracle.query(name)
+		cursor = oracle.query(name, query)
 		cols = [ x[0] for x in cursor.description ]
 		rows = cursor.fetchall()
 		return pd.DataFrame(rows, columns=cols)
@@ -33,6 +33,9 @@ def findName(inputVal):
 			if input in line.rstrip():
 				submit = line.rstrip()
 				count += 1
+			if input == line.rstrip():
+				#exact match, i.e. MONSANTO
+				return submit
 
 	if count > 1:
 		print('More than one MFG found, please be more specific')
@@ -44,8 +47,8 @@ def main():
 	createGooey()
 	name = findName(sys.argv[2:])
 	if name != "":
-		df = oracle_query(name)
-		graph.frame(df, name)
+		df = oracle_query(name, "mfg_sales")
+		graph.make_pdf(df, name)
 
 if __name__ == '__main__':
 	main()
